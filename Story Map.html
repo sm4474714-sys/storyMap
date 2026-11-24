@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arsenal FC: The Pride of North London — StoryMap by Saeed Mohammed</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;1,600&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS (Reliable CDN without SRI block) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    :root {
+      --bg-primary: #0b0e14;
+      --bg-secondary: #131822;
+      --bg-card: #1a2130;
+      --arsenal-red: #EF0107;
+      --arsenal-dark-red: #9C0004;
+      --arsenal-gold: #D4AF37;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(255, 255, 255, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* StoryMaps Top Navigation Bar */
+    .story-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 62px;
+      background: rgba(11, 14, 20, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      z-index: 2000;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-crest {
+      width: 28px;
+      height: 32px;
+      object-fit: contain;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.4rem;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: color 0.2s, border-color 0.2s;
+      padding: 19px 0;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+      border-bottom-color: var(--arsenal-red);
+    }
+
+    .nav-author {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      background: rgba(239, 1, 7, 0.16);
+      border: 1px solid rgba(239, 1, 7, 0.45);
+      padding: 5px 14px;
+      border-radius: 20px;
+    }
+
+    .nav-author strong {
+      color: #fff;
+    }
+
+    /* Hero Cover Section */
+    .hero {
+      position: relative;
+      min-height: 92vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 6rem 1.5rem 4rem;
+      background:
+        linear-gradient(to bottom, rgba(11, 14, 20, 0.45), rgba(11, 14, 20, 0.96)),
+        radial-gradient(circle at top center, rgba(239, 1, 7, 0.32), transparent 65%),
+        url('https://populous.com/uploads/2018/01/POP_0W_WDB1_72_5321_Emirates_InteriorVacant_Day3_Hufton_Crow-1200x675-c-center.jpg') center/cover no-repeat;
+      border-bottom: 3px solid var(--arsenal-red);
+    }
+
+    .hero-content {
+      max-width: 840px;
+      z-index: 2;
+    }
+
+    .hero-crest {
+      width: 78px;
+      height: auto;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.65));
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: var(--arsenal-red);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 4px;
+      margin-bottom: 1.1rem;
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 5vw, 4.1rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      color: #ffffff;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+
+    .hero p.subtitle {
+      font-size: clamp(1.05rem, 2vw, 1.28rem);
+      color: #e5e7eb;
+      font-weight: 300;
+      margin-bottom: 2rem;
+    }
+
+    .byline-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(19, 24, 34, 0.9);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 24px;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    }
+
+    .byline-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--arsenal-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.88rem;
+      color: #fff;
+    }
+
+    .byline-text span {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      display: block;
+      text-align: left;
+      line-height: 1.2;
+    }
+
+    .byline-text strong {
+      color: #fff;
+      font-size: 0.98rem;
+    }
+
+    /* Editorial Section */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 4.5rem 1.5rem;
+    }
+
+    .section-tag {
+      color: var(--arsenal-red);
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    h2.section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      margin-bottom: 1.25rem;
+      color: #fff;
+    }
+
+    .lead-paragraph {
+      font-size: 1.12rem;
+      color: #e5e7eb;
+      margin-bottom: 2rem;
+    }
+
+    .story-quote {
+      border-left: 4px solid var(--arsenal-red);
+      background: var(--bg-secondary);
+      padding: 1.5rem 1.75rem;
+      border-radius: 0 8px 8px 0;
+      margin: 2rem 0;
+    }
+
+    .story-quote p {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.35rem;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .story-quote cite {
+      color: var(--arsenal-gold);
+      font-style: normal;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Interactive Map Tour Section */
+    .map-tour-section {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 4rem 0;
+    }
+
+    .map-tour-header {
+      max-width: 1280px;
+      margin: 0 auto 2rem;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 1rem;
+    }
+
+    .basemap-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-map {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-map.active, .btn-map:hover {
+      background: var(--arsenal-red);
+      border-color: var(--arsenal-red);
+      color: #fff;
+    }
+
+    .map-tour-grid {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: grid;
+      grid-template-columns: 450px 1fr;
+      gap: 1.5rem;
+      align-items: stretch;
+    }
+
+    .tour-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-height: 640px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .tour-cards::-webkit-scrollbar {
+      width: 6px;
+    }
+    .tour-cards::-webkit-scrollbar-thumb {
+      background: rgba(239, 1, 7, 0.5);
+      border-radius: 4px;
+    }
+
+    .tour-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid transparent;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .tour-card:hover {
+      border-color: rgba(239, 1, 7, 0.45);
+    }
+
+    .tour-card.active {
+      background: #20293b;
+      border-left-color: var(--arsenal-red);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+
+    .tour-card-img {
+      width: 100%;
+      height: 155px;
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .tour-card-body {
+      padding: 1.1rem 1.25rem;
+    }
+
+    .tour-step {
+      display: inline-block;
+      background: rgba(239, 1, 7, 0.2);
+      color: #ff6b6f;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+
+    .tour-card.active .tour-step {
+      background: var(--arsenal-red);
+      color: #fff;
+    }
+
+    .tour-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.4rem;
+      color: #fff;
+    }
+
+    .tour-card p {
+      font-size: 0.87rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .tour-coords {
+      margin-top: 0.6rem;
+      font-family: monospace;
+      font-size: 0.78rem;
+      color: var(--arsenal-gold);
+    }
+
+    .map-wrapper {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      min-height: 640px;
+      background: #10151f;
+    }
+
+    #arsenalMap {
+      width: 100%;
+      height: 100%;
+      min-height: 640px;
+      z-index: 1;
+    }
+
+    .map-nav-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      gap: 10px;
+      background: rgba(11, 14, 20, 0.92);
+      padding: 8px 16px;
+      border-radius: 30px;
+      border: 1px solid var(--border-subtle);
+      white-space: nowrap;
+    }
+
+    /* Stadium Swipe Comparison (ArcGIS Swipe Feature) */
+    .swipe-section {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 4.5rem 1.5rem 2rem;
+    }
+
+    .swipe-container {
+      position: relative;
+      width: 100%;
+      height: 440px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--border-subtle);
+      user-select: none;
+      margin-top: 1.5rem;
+    }
+
+    .swipe-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .swipe-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      overflow: hidden;
+      border-right: 3px solid var(--arsenal-red);
+    }
+
+    .swipe-overlay img {
+      width: 920px;
+      max-width: none;
+      height: 440px;
+      object-fit: cover;
+    }
+
+    .swipe-label {
+      position: absolute;
+      top: 16px;
+      background: rgba(11, 14, 20, 0.85);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 1px solid var(--border-subtle);
+      z-index: 10;
+    }
+
+    .swipe-label.left { left: 16px; }
+    .swipe-label.right { right: 16px; }
+
+    .swipe-slider {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: ew-resize;
+      z-index: 20;
+    }
+
+    .swipe-handle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--arsenal-red);
+      color: #fff;
+      border: 3px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    /* Timeline Section */
+    .timeline {
+      position: relative;
+      margin-top: 2.5rem;
+      padding-left: 2rem;
+      border-left: 2px solid rgba(239, 1, 7, 0.45);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2.25rem;
+      background: var(--bg-secondary);
+      padding: 1.35rem 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.45rem;
+      top: 1.5rem;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--arsenal-red);
+      border: 3px solid var(--bg-primary);
+    }
+
+    .timeline-year {
+      color: var(--arsenal-gold);
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline-item h3 {
+      font-size: 1.15rem;
+      margin-bottom: 0.45rem;
+      color: #fff;
+    }
+
+    .timeline-item p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    /* Honors & Legends */
+    .honors-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+
+    .honor-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-top: 3px solid var(--arsenal-red);
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+    }
+
+    .honor-card.gold {
+      border-top-color: var(--arsenal-gold);
+    }
+
+    .honor-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .honor-card.gold .honor-num {
+      color: var(--arsenal-gold);
+    }
+
+    .honor-label {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .legend-feature {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.5rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+
+    .legend-feature img {
+      width: 100%;
+      height: 100%;
+      min-height: 210px;
+      object-fit: cover;
+    }
+
+    .legend-feature-content {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .legend-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .legend-tag {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 5px 11px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      color: #e5e7eb;
+    }
+
+    /* Credits Footer */
+    .credits-footer {
+      background: #07090d;
+      border-top: 1px solid var(--border-subtle);
+      padding: 3.5rem 1.5rem;
+      text-align: center;
+    }
+
+    .credits-inner {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .credits-inner h3 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--arsenal-red);
+      margin-bottom: 0.75rem;
+    }
+
+    .credits-author {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+
+    .credits-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Custom Leaflet Marker & Popup */
+    .arsenal-pin {
+      background: var(--arsenal-red);
+      color: #fff;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.7);
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: #1a2130;
+      color: #f3f4f6;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .leaflet-popup-tip {
+      background: #1a2130;
+    }
+
+    .popup-img {
+      width: 100%;
+      height: 115px;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .map-tour-grid {
+        grid-template-columns: 1fr;
+      }
+      .tour-cards {
+        max-height: none;
+      }
+      .map-wrapper, #arsenalMap {
+        min-height: 430px;
+      }
+      .nav-links {
+        display: none;
+      }
+      .honors-grid, .legend-feature {
+        grid-template-columns: 1fr;
+      }
+      .swipe-container, .swipe-overlay img {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="story-nav">
+    <div class="nav-brand">
+      <img class="nav-crest" src="https://upload.wikimedia.org/wikipedia/ar/archive/5/53/20230821010128%21Arsenal_FC.svg" alt="Arsenal Crest" onerror="this.style.display='none'">
+      <span>ARSENAL FC STORYMAP</span>
+    </div>
+    <div class="nav-links">
+      <a href="#overview">Overview</a>
+      <a href="#map-tour">Map Tour</a>
+      <a href="#stadium-swipe">Stadium Era</a>
+      <a href="#timeline">Timeline</a>
+      <a href="#honors">Legends</a>
+      <a href="#credits">Credits</a>
+    </div>
+    <div class="nav-author">
+      Created by <strong>Saeed Mohammed</strong>
+    </div>
+  </nav>
+
+  <!-- Hero Cover -->
+  <header class="hero">
+    <div class="hero-content">
+      <img class="hero-crest" src="https://upload.wikimedia.org/wikipedia/ar/archive/5/53/20230821010128%21Arsenal_FC.svg" alt="Arsenal FC Crest" onerror="this.style.display='none'">
+      <br>
+      <span class="hero-badge">Interactive Geographic Story</span>
+      <h1>Arsenal FC: The Pride of North London</h1>
+      <p class="subtitle">From a Munitions Factory in Woolwich to the Invincibles of Highbury and the Emirates</p>
+      <div class="byline-box">
+        <div class="byline-avatar">SM</div>
+        <div class="byline-text">
+          <span>Author &amp; Cartographer</span>
+          <strong>Saeed Mohammed</strong>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Introduction Section -->
+  <section id="overview" class="container">
+    <span class="section-tag">Chapter 01 — Club Identity</span>
+    <h2 class="section-title">Victoria Concordia Crescit</h2>
+    <p class="lead-paragraph">
+      Founded in 1886 by munitions workers in South East London, Arsenal Football Club has grown into one of the most iconic institutions in world football. Guided by its Latin motto, <em>"Victory Through Harmony"</em>, the club revolutionized English football through tactical innovation, attacking flair, and an unmatched 14 FA Cup triumphs.
+    </p>
+
+    <blockquote class="story-quote">
+      <p>“We don't buy superstars, we make them.”</p>
+      <cite>— Arsène Wenger, Manager (1996–2018)</cite>
+    </blockquote>
+  </section>
+
+  <!-- Interactive Map Tour -->
+  <section id="map-tour" class="map-tour-section">
+    <div class="map-tour-header">
+      <div>
+        <span class="section-tag">Chapter 02 — Spatial Journey</span>
+        <h2 class="section-title" style="margin-bottom: 0;">Interactive London Map Tour</h2>
+      </div>
+      <div class="basemap-controls">
+        <button class="btn-map active" id="btnDark" onclick="setBasemap('dark')">Esri Dark Gray</button>
+        <button class="btn-map" id="btnSat" onclick="setBasemap('sat')">Esri Satellite</button>
+        <button class="btn-map" id="btnStreet" onclick="setBasemap('street')">Esri Street</button>
+      </div>
+    </div>
+
+    <div class="map-tour-grid">
+      <!-- Left Cards with Real Photos -->
+      <div class="tour-cards" id="tourCards">
+        <div class="tour-card active" onclick="focusLocation(0)">
+          <img class="tour-card-img" src="https://spartacus-educational.com/FarsenalP3.jpg" alt="Royal Arsenal Woolwich 1893 Squad" onerror="this.style.display='none'">
+          <div class="tour-card-body">
+            <span class="tour-step">STOP 1 OF 4</span>
+            <h3>Woolwich (The Birthplace — 1886)</h3>
+            <p>Arsenal's story began at the Royal Arsenal armaments factory in Woolwich as "Dial Square." In 1893, they became the first club from Southern England to join the Football League.</p>
+            <div class="tour-coords">51.4905° N, 0.0688° E</div>
+          </div>
+        </div>
+
+        <div class="tour-card" onclick="focusLocation(1)">
+          <img class="tour-card-img" src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Arsenal_Stadium_Highbury_east_facade.jpg" alt="Highbury Stadium East Facade" onerror="this.style.display='none'">
+          <div class="tour-card-body">
+            <span class="tour-step">STOP 2 OF 4</span>
+            <h3>Highbury Stadium (1913–2006)</h3>
+            <p>Moving north across the Thames in 1913, Highbury became Arsenal's spiritual home for 93 years, witnessing the Herbert Chapman revolution and the historic 2003–04 "Invincibles" season.</p>
+            <div class="tour-coords">51.5577° N, 0.1029° W</div>
+          </div>
+        </div>
+
+        <div class="tour-card" onclick="focusLocation(2)">
+          <img class="tour-card-img" src="https://populous.com/uploads/2018/01/HOK-Emirates-Exteriors-10-1200x675-c-center.jpg" alt="Emirates Stadium Exterior" onerror="this.style.display='none'">
+          <div class="tour-card-body">
+            <span class="tour-step">STOP 3 OF 4</span>
+            <h3>Emirates Stadium (2006–Present)</h3>
+            <p>Opened in July 2006 with a capacity of over 60,700 seats, the Emirates Stadium stands just 500 yards from Highbury, symbolizing Arsenal's modern European stature.</p>
+            <div class="tour-coords">51.5549° N, 0.1084° W</div>
+          </div>
+        </div>
+
+        <div class="tour-card" onclick="focusLocation(3)">
+          <img class="tour-card-img" src="https://footballtraininggrounds.home.blog/wp-content/uploads/2019/01/793446.jpg?w=1194" alt="Arsenal London Colney Training Centre" onerror="this.style.display='none'">
+          <div class="tour-card-body">
+            <span class="tour-step">STOP 4 OF 4</span>
+            <h3>Sobha Realty Training Centre</h3>
+            <p>Located in London Colney, Hertfordshire, this state-of-the-art facility opened in 1999 and serves as the tactical headquarters for the men's, women's, and academy squads.</p>
+            <div class="tour-coords">51.7097° N, 0.2896° W</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Map -->
+      <div class="map-wrapper">
+        <div id="arsenalMap"></div>
+        <div class="map-nav-overlay">
+          <button class="btn-map" onclick="prevStop()">← Previous</button>
+          <button class="btn-map" onclick="resetOverview()">Full Route</button>
+          <button class="btn-map active" onclick="nextStop()">Next Stop →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Stadium Swipe Comparison -->
+  <section id="stadium-swipe" class="swipe-section">
+    <span class="section-tag">Interactive Comparison — Drag Slider</span>
+    <h2 class="section-title">From Highbury (1913) to Emirates Stadium (2006)</h2>
+    <p style="color: var(--text-muted);">Drag the red slider left and right to compare Arsenal's historic Art Deco home at Highbury with the modern Emirates Stadium.</p>
+
+    <div class="swipe-container" id="swipeBox">
+      <span class="swipe-label left">Highbury (1913–2006)</span>
+      <span class="swipe-label right">Emirates Stadium (2006–Present)</span>
+      <img class="swipe-img" src="https://populous.com/uploads/2018/01/HOK-Emirates-Exteriors-10-1200x675-c-center.jpg" alt="Emirates Stadium">
+      <div class="swipe-overlay" id="swipeOverlay">
+        <img id="swipeLeftImg" src="https://upload.wikimedia.org/wikipedia/commons/9/9e/Arsenal_Stadium_Highbury_east_facade.jpg" alt="Highbury Stadium">
+      </div>
+      <div class="swipe-handle" id="swipeHandle">↔</div>
+      <input type="range" min="0" max="100" value="50" class="swipe-slider" id="swipeSlider" aria-label="Compare Highbury and Emirates Stadium">
+    </div>
+  </section>
+
+  <!-- Timeline Section -->
+  <section id="timeline" class="container">
+    <span class="section-tag">Chapter 03 — Chronology</span>
+    <h2 class="section-title">Historical Milestones</h2>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <span class="timeline-year">1886</span>
+        <h3>Dial Square is Born</h3>
+        <p>Workers at the Royal Arsenal in Woolwich establish the club, playing their first match against Eastern Wanderers on December 11, 1886.</p>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-year">1925–1934</span>
+        <h3>The Herbert Chapman Revolution</h3>
+        <p>Manager Herbert Chapman introduces the famous WM formation, numbered shirts, floodlights, and secures Arsenal's first major league and cup trophies.</p>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-year">1970–1971</span>
+        <h3>The First League &amp; Cup Double</h3>
+        <p>Under Bertie Mee, Arsenal clinch their first European trophy (Inter-Cities Fairs Cup) followed by a historic First Division and FA Cup Double at White Hart Lane.</p>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-year">2003–2004</span>
+        <h3>The Invincibles</h3>
+        <p>Managed by Arsène Wenger and led by Thierry Henry, Arsenal complete an entire 38-game Premier League season unbeaten (26 wins, 12 draws), earning a unique Golden Trophy.</p>
+      </div>
+
+      <div class="timeline-item">
+        <span class="timeline-year">2020–PRESENT</span>
+        <h3>Mikel Arteta's Renaissance</h3>
+        <p>Former club captain Mikel Arteta revitalizes the squad with a young core, lifting the 14th FA Cup and re-establishing Arsenal as consistent title and Champions League contenders.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Honors & Legends -->
+  <section id="honors" class="container" style="padding-top: 1rem;">
+    <span class="section-tag">Chapter 04 — Legacy</span>
+    <h2 class="section-title">Club Honors &amp; Legends</h2>
+
+    <div class="honors-grid">
+      <div class="honor-card gold">
+        <div class="honor-num">13</div>
+        <div class="honor-label">English Top-Flight Titles (Incl. Golden Trophy)</div>
+      </div>
+      <div class="honor-card">
+        <div class="honor-num">14</div>
+        <div class="honor-label">FA Cups (All-Time English Record)</div>
+      </div>
+      <div class="honor-card">
+        <div class="honor-num">17</div>
+        <div class="honor-label">FA Community Shields</div>
+      </div>
+    </div>
+
+    <div class="legend-feature">
+      <img src="https://vid.alarabiya.net/images/2018/02/26/0aed1243-8570-417b-a788-7e983b7d4ced/0aed1243-8570-417b-a788-7e983b7d4ced_16x9_1200x676.jpeg" alt="Thierry Henry Arsenal Legend">
+      <div class="legend-feature-content">
+        <h3 style="font-size: 1.25rem; margin-bottom: 0.4rem;">Iconic Arsenal Figures</h3>
+        <p style="font-size: 0.92rem; color: var(--text-muted);">
+          Led by all-time record goalscorer Thierry Henry (228 goals), Arsenal's legacy spans generations of world-class leaders and creators.
+        </p>
+        <div class="legend-tags">
+          <span class="legend-tag">Thierry Henry (228 Goals)</span>
+          <span class="legend-tag">Tony Adams ("Mr. Arsenal")</span>
+          <span class="legend-tag">Dennis Bergkamp</span>
+          <span class="legend-tag">Ian Wright</span>
+          <span class="legend-tag">Patrick Vieira</span>
+          <span class="legend-tag">Bukayo Saka</span>
+          <span class="legend-tag">Martin Ødegaard</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Credits Footer -->
+  <footer id="credits" class="credits-footer">
+    <div class="credits-inner">
+      <h3>StoryMap Credits &amp; Attribution</h3>
+      <div class="credits-author">Prepared &amp; Designed by Saeed Mohammed</div>
+      <p class="credits-meta">
+        Cartography &amp; Basemaps powered by Esri &amp; Leaflet.js • Historical Data: Arsenal FC Official Archive &amp; Premier League Records
+      </p>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS (Reliable CDN without SRI block) -->
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // Swipe Slider Logic
+    const swipeSlider = document.getElementById('swipeSlider');
+    const swipeOverlay = document.getElementById('swipeOverlay');
+    const swipeHandle = document.getElementById('swipeHandle');
+    const swipeBox = document.getElementById('swipeBox');
+    const swipeLeftImg = document.getElementById('swipeLeftImg');
+
+    function syncSwipeWidth() {
+      if (swipeBox && swipeLeftImg) {
+        swipeLeftImg.style.width = swipeBox.offsetWidth + 'px';
+      }
+    }
+    window.addEventListener('resize', syncSwipeWidth);
+    syncSwipeWidth();
+
+    swipeSlider.addEventListener('input', function () {
+      const val = this.value + '%';
+      swipeOverlay.style.width = val;
+      swipeHandle.style.left = val;
+    });
+
+    // Map Tour Data with Real Photos
+    const locations = [
+      {
+        title: "1. Woolwich (The Birthplace - 1886)",
+        coords: [51.4905, 0.0688],
+        zoom: 15,
+        img: "https://spartacus-educational.com/FarsenalP3.jpg",
+        desc: "Royal Arsenal armaments factory in South East London, where Dial Square FC was founded in 1886."
+      },
+      {
+        title: "2. Highbury Stadium (1913–2006)",
+        coords: [51.5577, -0.1029],
+        zoom: 16,
+        img: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Arsenal_Stadium_Highbury_east_facade.jpg",
+        desc: "Arsenal Stadium in Highbury — home for 93 years and site of the 2003–04 Invincibles."
+      },
+      {
+        title: "3. Emirates Stadium (2006–Present)",
+        coords: [51.5549, -0.1084],
+        zoom: 16,
+        img: "https://populous.com/uploads/2018/01/HOK-Emirates-Exteriors-10-1200x675-c-center.jpg",
+        desc: "Modern 60,704-capacity stadium in Holloway, North London."
+      },
+      {
+        title: "4. Sobha Realty Training Centre",
+        coords: [51.7097, -0.2896],
+        zoom: 15,
+        img: "https://footballtraininggrounds.home.blog/wp-content/uploads/2019/01/793446.jpg?w=1194",
+        desc: "First-team and academy training headquarters in London Colney, Hertfordshire."
+      }
+    ];
+
+    let currentIndex = 0;
+    let map, currentLayer, basemaps, routeLine, markers;
+
+    function initMap() {
+      if (typeof L === 'undefined') {
+        document.getElementById('arsenalMap').innerHTML =
+          '<div style="padding:2rem;text-align:center;color:#f3f4f6;">Please check your internet connection to load the interactive Esri map.</div>';
+        return;
+      }
+
+      map = L.map('arsenalMap', {
+        scrollWheelZoom: false
+      }).setView(locations[0].coords, locations[0].zoom);
+
+      basemaps = {
+        dark: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri',
+          maxZoom: 18
+        }),
+        sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri',
+          maxZoom: 18
+        }),
+        street: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri',
+          maxZoom: 18
+        })
+      };
+
+      currentLayer = basemaps.dark.addTo(map);
+
+      const routeCoords = locations.map(loc => loc.coords);
+      routeLine = L.polyline(routeCoords, {
+        color: '#EF0107',
+        weight: 3,
+        opacity: 0.8,
+        dashArray: '8, 8'
+      }).addTo(map);
+
+      markers = locations.map((loc, idx) => {
+        const icon = L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div class="arsenal-pin">${idx + 1}</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+        });
+
+        const marker = L.marker(loc.coords, { icon }).addTo(map);
+        marker.bindPopup(`
+          <div style="width:210px;">
+            <img class="popup-img" src="${loc.img}" alt="${loc.title}" onerror="this.style.display='none'">
+            <strong>${loc.title}</strong><br>
+            <span style="font-size:12px;color:#d1d5db;">${loc.desc}</span>
+          </div>
+        `);
+        marker.on('click', () => focusLocation(idx));
+        return marker;
+      });
+
+      markers[0].openPopup();
+      setTimeout(() => map.invalidateSize(), 300);
+    }
+
+    window.addEventListener('load', initMap);
+
+    function focusLocation(index) {
+      currentIndex = index;
+      const loc = locations[index];
+
+      const cards = document.querySelectorAll('.tour-card');
+      cards.forEach((c, i) => c.classList.toggle('active', i === index));
+
+      if (map) {
+        map.flyTo(loc.coords, loc.zoom, { duration: 1.4 });
+        markers[index].openPopup();
+      }
+    }
+
+    function nextStop() {
+      focusLocation((currentIndex + 1) % locations.length);
+    }
+
+    function prevStop() {
+      focusLocation((currentIndex - 1 + locations.length) % locations.length);
+    }
+
+    function resetOverview() {
+      if (map && routeLine) {
+        map.fitBounds(routeLine.getBounds(), { padding: [45, 45] });
+      }
+    }
+
+    function setBasemap(type) {
+      if (!map || !basemaps) return;
+      map.removeLayer(currentLayer);
+      currentLayer = basemaps[type].addTo(map);
+
+      document.getElementById('btnDark').classList.toggle('active', type === 'dark');
+      document.getElementById('btnSat').classList.toggle('active', type === 'sat');
+      document.getElementById('btnStreet').classList.toggle('active', type === 'street');
+    }
+  </script>
+</body>
+</html>
